@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Vaccine Carrier Tracker</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- Leaflet Routing Machine CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #e9f5f7;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .navbar {
+            background-color: #004d40;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: #ffffff;
+        }
+
+        .navbar-brand:hover {
+            color: #b2dfdb;
+        }
+
+        .btn {
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 0.875rem;
+        }
+
+        .form-control, select {
+            border-radius: 10px;
+            border: 1px solid #b0bec5;
+            font-size: 0.875rem;
+        }
+
+        .card {
+            height: 100%;
+            display: flex;
+            font-weight: bold;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            border: 1px solid #b0bec5;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #f1f8f9;
+            border-bottom: 1px solid #b0bec5;
+            padding: 0.75rem;
+            font-size: 1.2rem;
+        }
+
+        .card-title {
+            color: #004d40;
+            font-weight: bold;
+            margin-bottom: 0;
+            text-align: left;
+            font-size: 1rem;
+        }
+
+        .parameter-card {
+            flex: 1 1 auto;
+            margin: 5px;
+            width: 150px;
+            height: 140px;
+        }
+
+        #parameterCards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #b0bec5;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        /* Responsif */
+        @media (max-width: 768px) {
+            #map {
+                height: 300px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            #map {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Smart Vaccine Carrier</a>
+            <div class="filter-container d-flex align-items-center">
+                <select id="provinceDropdown" class="form-select me-2">
+                    <option value="">Pilih Provinsi</option>
+                    <option value="Aceh">Aceh</option>
+                    <option value="Sumatera Utara">Sumatera Utara</option>
+                    <option value="Sumatera Barat">Sumatera Barat</option>
+                    <option value="Papua">Papua</option>
+                    <option value="Papua Barat">Papua Barat</option>
+                </select>
+                <select id="suratDropdown" class="form-select">
+                    <option value="">Pilih Surat</option>
+                    <option value="Surat Masuk">Surat Masuk</option>
+                    <option value="Surat Keluar">Surat Keluar</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Parameter Cards Section -->
+            <div class="col-lg-4 col-md-5 mb-2">
+                <div id="parameterCards">
+                    <!-- Estimasi Tiba Card -->
+                    <div class="parameter-card">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                                <p>Estimasi</p>
+                                <span id="estimatedArrival"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Menyembunyikan Card Tanggal -->
+                    <div class="parameter-card" style="display: none;">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-calendar" style="font-size: 2rem;"></i>
+                                <p>Tanggal</p>
+                                <span id="time_date"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Menyembunyikan Card Jam -->
+                    <div class="parameter-card" style="display: none;">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-clock-history" style="font-size: 2rem;"></i>
+                                <p>Jam</p>
+                                <span id="time_time"></span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Jarak Tersisa Card -->
+                    <div class="parameter-card">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-arrows-move" style="font-size: 2rem;"></i>
+                                <p>Jarak</p>
+                                <span id="remainingDistance"></span> km
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suhu Card -->
+                    <div class="parameter-card">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-thermometer-half" style="font-size: 2rem;"></i>
+                                <p>Suhu</p>
+                                <span id="temperature"></span> °C
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Baterai Card -->
+                    <div class="parameter-card">
+                        <div class="card p-3">
+                            <div class="card-body text-center">
+                                <i class="bi bi-battery-half" style="font-size: 2rem;"></i>
+                                <p>Baterai</p>
+                                <span id="battery"></span> %
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+            </div>
+            
+            <!-- Map and Search Box -->
+            <div class="col-lg-8 col-md-7">
+                <div id="map"></div>
+            </div>
+            
+            <!-- Card Keberangkatan dan Tujuan -->
+            <div class="col-lg-4 col-md-5 mb-4">
+                <div class="card p-3">
+                    <div class="card-header bg-transparent border-0">
+                        <h5 class="card-title">Masukkan Lokasi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="startLocation">Keberangkatan</label>
+                            <div class="input-group">
+                                <input type="text" id="startLocation" class="form-control" placeholder="Lokasi Keberangkatan">
+                                <button id="searchStartLocation" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label for="endLocation">Tujuan</label>
+                            <div class="input-group">
+                                <input type="text" id="endLocation" class="form-control" placeholder="Lokasi Tujuan">
+                                <button id="searchEndLocation" class="btn btn-primary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Button Card -->
+                                <div class="card-body">
+                                    <button id="startPolylineButton" class="btn btn-success w-100">Mulai</button>
+                                    <button id="resetButton" class="btn btn-warning w-100 mt-2" style="display:none;">Reset</button>
+                                    <button id="exportXLSXButton" class="btn btn-primary w-100 mt-2">Unduh Data</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           
+        </div>
+    </div>
+
+
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Leaflet Routing Machine JS -->
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+	<!-- Leaflet Control Geocoder JS -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <script>
+        // Your existing JavaScript code for map handling
+
+        var map = L.map('map').setView([0, 0], 15);
+        var polyline = L.polyline([], { color: 'blue' }).addTo(map);
+        var startMarker, endMarker, currentMarker;
+        var routeControl;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        function updateMap(data) {
+            var latitude = parseFloat(data.field1);
+            var longitude = parseFloat(data.field2);
+            var temp = parseFloat(data.field3);
+            var batt = parseFloat(data.field4);
+            var timestamp = data.created_at;
+
+            var date_ = timestamp.split('T'),
+                date_now = date_[0], time_z = date_[1];
+            var time_ = time_z.split('+'), time_now = time_[0];
+            
+            document.getElementById('time_date').textContent = date_now;
+            document.getElementById('time_time').textContent = time_now;
+            document.getElementById('temperature').textContent = temp.toFixed(2);
+            document.getElementById('battery').textContent = batt.toFixed(2);
+			
+            if (document.getElementById('latitude')) {
+                document.getElementById('latitude').textContent = latitude.toFixed(6);
+            }
+            if (document.getElementById('longitude')) {
+                document.getElementById('longitude').textContent = longitude.toFixed(6);
+            }
+
+            updateMarker(latitude, longitude);
+
+            if (stat_btn == 1) {
+                polyline.addLatLng([latitude, longitude]);
+                map.addLayer(polyline);
+            }
+
+            map.panTo([latitude, longitude]);
+        }
+
+        function updateMarker(latitude, longitude) {
+            var customPopup = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
+            if (currentMarker) {
+                currentMarker.setLatLng([latitude, longitude]).bindPopup(customPopup).openPopup();
+            } else {
+                currentMarker = L.marker([latitude, longitude], {
+                    icon: L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png', iconSize: [25, 41], iconAnchor: [12, 41] })
+                }).addTo(map).bindPopup(customPopup).openPopup();
+            }
+        }
+        
+        // Initialize the geocoder
+        const geocoder = L.Control.Geocoder.nominatim();
+        
+        // Fungsi untuk mencari lokasi berdasarkan alamat
+        function searchLocation(inputId, callback) {
+            const locationInput = document.getElementById(inputId).value;
+            geocoder.geocode(locationInput, (results) => {
+                if (results.length > 0) {
+                    const latLng = results[0].center;
+                    map.setView(latLng, 13);
+                    L.marker(latLng).addTo(map);
+                    callback(latLng);
+                }
+            });
+        }
+
+        // Event listener untuk mencari lokasi keberangkatan
+        document.getElementById('searchStartLocation').addEventListener('click', () => {
+            searchLocation('startLocation', (latLng) => {
+                document.getElementById('startLocation').dataset.latlng = latLng.lat + ',' + latLng.lng;
+            });
+        });
+
+        // Event listener untuk mencari lokasi tujuan
+        document.getElementById('searchEndLocation').addEventListener('click', () => {
+            searchLocation('endLocation', (latLng) => {
+                document.getElementById('endLocation').dataset.latlng = latLng.lat + ',' + latLng.lng;
+            });
+        });
+
+
+        function updateRoute() {
+            var startLocation = document.getElementById('startLocation').dataset.latlng.split(',');
+            var endLocation = document.getElementById('endLocation').dataset.latlng.split(',');
+            var startLat = parseFloat(startLocation[0]);
+            var startLng = parseFloat(startLocation[1]);
+            var endLat = parseFloat(endLocation[0]);
+            var endLng = parseFloat(endLocation[1]);
+
+            if (isNaN(startLat) || isNaN(startLng) || isNaN(endLat) || isNaN(endLng)) {
+                alert('Koordinat tidak valid untuk keberangkatan dan tujuan.');
+                return;
+            }
+
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+
+            startMarker = L.marker([startLat, startLng], { icon: L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png', iconSize: [25, 41], iconAnchor: [12, 41], iconColor: 'green' }) }).addTo(map).bindPopup("Keberangkatan");
+            endMarker = L.marker([endLat, endLng], { icon: L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png', iconSize: [25, 41], iconAnchor: [12, 41], iconColor: 'green' }) }).addTo(map).bindPopup("Tujuan");
+
+            // Clear previous routes
+            if (routeControl) {
+                routeControl.remove();
+            }
+            
+            // Use Leaflet Routing Machine to get the route
+            routeControl = L.Routing.control({
+                waypoints: [
+                    L.latLng(startLat, startLng),
+                    L.latLng(endLat, endLng)
+                ],
+                routeWhileDragging: true,
+                createMarker: function () { return null; },
+                lineOptions: {
+                    styles: [{ color: 'blue', weight: 5 }]
+                }
+            }).on('routesfound', function(e) {
+                var routes = e.routes;
+                var distance = routes[0].summary.totalDistance; // Dalam meter
+                var time = routes[0].summary.totalTime; // Dalam detik
+
+                // Konversi jarak ke kilometer
+                var remainingDistance = (distance / 1000).toFixed(2); // Dalam km, dengan 2 desimal
+                // Hitung estimasi waktu tiba
+                var estimatedArrivalTime = new Date(Date.now() + time * 1000); // Waktu saat ini + waktu sisa dalam detik
+
+                // Update elemen HTML
+                document.getElementById('remainingDistance').textContent = remainingDistance; // Menampilkan jarak dalam km
+                document.getElementById('estimatedArrival').textContent = estimatedArrivalTime.toLocaleTimeString(); // Menampilkan estimasi tiba
+
+                console.log("Jarak: " + remainingDistance + " km");
+                console.log("Estimasi Tiba: " + estimatedArrivalTime.toLocaleTimeString());
+            }).addTo(map);
+
+            document.getElementById('resetButton').style.display = 'block';
+            document.getElementById('startPolylineButton').style.display = 'none';
+        }
+
+  document.getElementById('startPolylineButton').addEventListener('click', updateRoute);
+        document.getElementById('resetButton').addEventListener('click', function() {
+            stat_btn = 0;
+            polyline.setLatLngs([]);
+            if (routeControl) {
+                routeControl.remove();
+            }
+            document.getElementById('resetButton').style.display = 'none';
+            document.getElementById('startPolylineButton').style.display = 'block';
+        });
+
+        function fetchData() {
+            var channelId = '2621036'; 
+            var readApiKey = 'KI5YO4SXV3MCH18T';
+            var url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readApiKey}&results=1`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => updateMap(data.feeds[0]))
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        function exportToXLSX() {
+            var channelId = '2621036'; 
+            var readApiKey = 'KI5YO4SXV3MCH18T';
+            var url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readApiKey}&results=1000`;  // Adjust the number of results if needed
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    var feeds = data.feeds;
+                    var ws_data = [["Tanggal", "Waktu", "Suhu (°C)", "Baterai (%)", "Latitude", "Longitude"]];
+
+                    feeds.forEach(feed => {
+                        var timestamp = feed.created_at;
+                        var date_ = timestamp.split('T'),
+                            date_now = date_[0], time_z = date_[1];
+                        var time_ = time_z.split('+'), time_now = time_[0];
+                        
+                        ws_data.push([
+                            date_now,
+                            time_now,
+                            parseFloat(feed.field3).toFixed(2),
+                            parseFloat(feed.field4).toFixed(2),
+                            parseFloat(feed.field1).toFixed(6),
+                            parseFloat(feed.field2).toFixed(6)
+                        ]);
+                    });
+
+                    var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+                    XLSX.writeFile(wb, "data.xlsx");
+                })
+                .catch(error => console.error('Error fetching data for XLSX export:', error));
+        }
+
+        document.getElementById('exportXLSXButton').addEventListener('click', exportToXLSX);
+
+        setInterval(fetchData, 15000);  // Refresh data every 15 seconds
+    </script>
+    </body>
+</html>
