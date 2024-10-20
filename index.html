@@ -279,7 +279,7 @@
     <script>
         // Your existing JavaScript code for map handling
 
-	var map = L.map('map').setView([-6.200000, 106.816666], 12); // Jakarta, Indonesia
+	var map = L.map('map').setView([0, 0], 15); // Jakarta, Indonesia
         var polyline = L.polyline([], { color: 'blue' }).addTo(map);
         var startMarker, endMarker, currentMarker;
         var routeControl;
@@ -321,15 +321,16 @@
             map.panTo([latitude, longitude]);
         }
 
-	function updateMarker(lat, lng) {
-	    var customPopup = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
-	    if (!currentMarker) {
-	        currentMarker = L.marker([lat, lng]).addTo(map);
-	    } else {
-	        currentMarker.setLatLng([lat, lng]);
-	    }
-	    map.setView([lat, lng], 15); // Update view agar peta fokus ke lokasi baru
-	}
+	function updateMarker(latitude, longitude) {
+            var customPopup = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
+            if (currentMarker) {
+                currentMarker.setLatLng([latitude, longitude]).bindPopup(customPopup).openPopup();
+            } else {
+                currentMarker = L.marker([latitude, longitude], {
+                    icon: L.icon({ iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png', iconSize: [25, 41], iconAnchor: [12, 41] })
+                }).addTo(map).bindPopup(customPopup).openPopup();
+            }
+        }
 
         
         // Initialize the geocoder
