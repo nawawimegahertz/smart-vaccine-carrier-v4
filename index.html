@@ -18,6 +18,9 @@
     <!-- Icons CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body {
@@ -288,6 +291,16 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
+	// Menampilkan alert menggunakan SweetAlert2
+        function showAlert(title, text, icon) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                confirmButtonText: 'OK'
+            });
+        }
+
         function updateMap(data) {
             var latitude = parseFloat(data.field1);
             var longitude = parseFloat(data.field2);
@@ -372,7 +385,7 @@
             var endLng = parseFloat(endLocation[1]);
 
             if (isNaN(startLat) || isNaN(startLng) || isNaN(endLat) || isNaN(endLng)) {
-                alert('Koordinat tidak valid untuk keberangkatan dan tujuan.');
+                showAlert("Error", "Silakan masukkan lokasi keberangkatan dan tujuan.", "error");
                 return;
             }
 
@@ -476,6 +489,7 @@
                     XLSX.writeFile(wb, "data.xlsx");
                 })
                 .catch(error => console.error('Error fetching data for XLSX export:', error));
+		showAlert("Pengunduhan data gagal.", `Silakan coba lagi dalam beberapa saat.`, "error");
         }
 
         document.getElementById('exportXLSXButton').addEventListener('click', exportToXLSX);
