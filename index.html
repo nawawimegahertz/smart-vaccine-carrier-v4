@@ -489,7 +489,7 @@
                     XLSX.writeFile(wb, "data.xlsx");
                 })
                 .catch(error => console.error('Error fetching data for XLSX export:', error));
-		showAlert("Pengunduhan data gagal.", `Silakan coba lagi dalam beberapa saat.`, "error");
+		showAlert("Pengunduhan data gagal.", `Silakan coba lagi dalam beberapa saat.`, "success");
         }
 
         document.getElementById('exportXLSXButton').addEventListener('click', exportToXLSX);
