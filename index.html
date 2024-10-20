@@ -438,55 +438,40 @@
         }
 
         function exportToXLSX() {
-	    var channelId = '2621036'; 
-	    var readApiKey = 'KI5YO4SXV3MCH18T';
-	    
-	    // Gunakan backticks untuk string template pada URL
-	    var url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readApiKey}&results=1000`;
-	
-	    // Ambil data dari API
-	    fetch(url)
-	        .then(response => response.json())
-	        .then(data => {
-	            var feeds = data.feeds;
-	
-	            // Buat header data XLSX
-	            var ws_data = [["Tanggal", "Waktu", "Suhu (°C)", "Baterai (%)", "Latitude", "Longitude"]];
-	
-	            // Mapping setiap feed ke dalam array untuk sheet XLSX
-	            feeds.forEach(feed => {
-	                var timestamp = feed.created_at;
-	                var date_ = timestamp.split('T'), 
-	                    date_now = date_[0], 
-	                    time_z = date_[1];
-	                var time_ = time_z.split('+'), 
-	                    time_now = time_[0];
-	
-	                // Push data ke array ws_data
-	                ws_data.push([
-	                    date_now,
-	                    time_now,
-	                    parseFloat(feed.field3).toFixed(2),  // Suhu
-	                    parseFloat(feed.field4).toFixed(2),  // Baterai
-	                    parseFloat(feed.field1).toFixed(6),  // Latitude
-	                    parseFloat(feed.field2).toFixed(6)   // Longitude
-	                ]);
-	            });
-	
-	            // Konversi array ke sheet XLSX
-	            var ws = XLSX.utils.aoa_to_sheet(ws_data);
-	
-	            // Buat workbook baru dan tambahkan sheet
-	            var wb = XLSX.utils.book_new();
-	            XLSX.utils.book_append_sheet(wb, ws, "data-smart-vaccine-carrier");
-	
-	            // Ekspor file ke XLSX
-	            XLSX.writeFile(wb, "data.xlsx");
-	        })
-	        .catch(error => {
-	            console.error('Error fetching data for XLSX export:', error);
-	        });
-	}
+            var channelId = '2621036'; 
+            var readApiKey = 'KI5YO4SXV3MCH18T';
+            var url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readApiKey}&results=1000`;  // Adjust the number of results if needed
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    var feeds = data.feeds;
+                    var ws_data = [["Tanggal", "Waktu", "Suhu (°C)", "Baterai (%)", "Latitude", "Longitude"]];
+
+                    feeds.forEach(feed => {
+                        var timestamp = feed.created_at;
+                        var date_ = timestamp.split('T'),
+                            date_now = date_[0], time_z = date_[1];
+                        var time_ = time_z.split('+'), time_now = time_[0];
+                        
+                        ws_data.push([
+                            date_now,
+                            time_now,
+                            parseFloat(feed.field3).toFixed(2),
+                            parseFloat(feed.field4).toFixed(2),
+                            parseFloat(feed.field1).toFixed(6),
+                            parseFloat(feed.field2).toFixed(6)
+                        ]);
+                    });
+
+                    var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+                    XLSX.writeFile(wb, "data.xlsx");
+                })
+                .catch(error => console.error('Error fetching data for XLSX export:', error));
+        }
 
         document.getElementById('exportXLSXButton').addEventListener('click', exportToXLSX);
 
