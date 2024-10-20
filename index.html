@@ -110,6 +110,12 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
         }
+        
+        #fullScreenButton {
+            width: 100%;
+            color: #000000;
+            background-color: #ffa500; /* Ganti dengan warna yang diinginkan */
+        }
 
         /* Responsif */
         @media (max-width: 768px) {
@@ -258,6 +264,8 @@
                                     <button id="startPolylineButton" class="btn btn-success w-100">Mulai</button>
                                     <button id="resetButton" class="btn btn-warning w-100 mt-2" style="display:none;">Reset</button>
                                     <button id="exportXLSXButton" class="btn btn-primary w-100 mt-2">Unduh Data</button>
+                                    <button id="fullScreenButton" class="btn btn-primary w-100 mt-2">Full Page</button>
+                            </div>
                                 </div>
                             </div>
                         </div>
@@ -276,6 +284,7 @@
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <!-- Leaflet Control Geocoder JS -->
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
@@ -513,6 +522,41 @@
                 .catch(error => console.error('Error fetching data for XLSX export:', error));
 		showAlert("Pengunduhan data berhasil.", `Selamat menganalisis datanya.`, "success");
         }
+        
+        // Fullscreen functionality
+        var fullScreenButton = document.getElementById('fullScreenButton');
+
+        fullScreenButton.addEventListener('click', function() {
+            var elem = document.documentElement; // Make the whole document full-screen
+
+            if (!document.fullscreenElement) {
+                // Enter fullscreen mode
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) { // Firefox
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { // IE/Edge
+                    elem.msRequestFullscreen();
+                }
+                // Ubah teks button menjadi "Keluar Full Page"
+                fullScreenButton.textContent = "Keluar Full Page";
+            } else {
+                // Exit fullscreen mode
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { // Firefox
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { // Chrome, Safari, and Opera
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { // IE/Edge
+                    document.msExitFullscreen();
+                }
+                // Ubah teks button kembali menjadi "Full Page"
+                fullScreenButton.textContent = "Full Page";
+            }
+        });
 
         document.getElementById('exportXLSXButton').addEventListener('click', exportToXLSX);
 
