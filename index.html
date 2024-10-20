@@ -466,16 +466,39 @@
             document.getElementById('startPolylineButton').style.display = 'block';
         });
 
-        function fetchData() {
-            var channelId = '2621036'; 
-            var readApiKey = 'KI5YO4SXV3MCH18T';
-            var url = `https://api.thingspeak.com/channels/${channelId}/feeds.json?api_key=${readApiKey}&results=1`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => updateMap(data.feeds[0]))
-                .catch(error => console.error('Error fetching data:', error));
-        }
+	async function fetchData() {
+	    const apiUrl = "https://api.thingspeak.com/channels/2621036/fields/1.json?results=100"; // Ganti dengan URL API Anda
+	    try {
+	        const response = await fetch(apiUrl);
+	        const data = await response.json();
+	        
+	        // Ambil semua entri dari hasil
+	        const entries = data.feeds;
+	
+	        // Filter entri yang memiliki latitude dan longitude valid
+	        const validEntries = entries.filter(entry => {
+	            const latitude = parseFloat(entry.field1); // Ganti field1 dengan nama field latitude
+	            const longitude = parseFloat(entry.field2); // Ganti field2 dengan nama field longitude
+	            return !isNaN(latitude) && !isNaN(longitude); // Hanya ambil yang tidak NaN
+	        });
+	
+	        // Ambil entri terakhir yang valid
+	        const lastValidEntry = validEntries[validEntries.length - 1];
+	        
+	        if (lastValidEntry) {
+	            const latitude = parseFloat(lastValidEntry.field1); // Ganti field1 dengan nama field latitude
+	            const longitude = parseFloat(lastValidEntry.field2); // Ganti field2 dengan nama field longitude
+	            console.log(`Latitude: ${latitude}, Longitude: ${longitude}`);
+	            // Tampilkan data di UI sesuai kebutuhan Anda
+	        } else {
+	            console.log("Tidak ada data valid ditemukan.");
+	            // Tampilkan pesan error sesuai kebutuhan Anda
+	        }
+	    } catch (error) {
+	        console.error("Error fetching data:", error);
+	        // Tampilkan pesan error sesuai kebutuhan Anda
+	    }
+	}
 
         function exportToXLSX() {
             var channelId = '2621036'; 
