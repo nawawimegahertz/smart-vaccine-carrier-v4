@@ -358,6 +358,17 @@
             });
         });
 
+	document.getElementById('exportXLSXButton').addEventListener('click', function() {
+	    // URL API Thingspeak untuk mengunduh data dalam format XLSX
+	    var apiKey = '2621036'; // Ganti dengan API key Anda
+	    var channelID = 'KI5YO4SXV3MCH18T'; // Ganti dengan ID channel Anda
+	    var url = `https://api.thingspeak.com/channels/${channelID}/feeds.xlsx?api_key=${apiKey}&results=1500`;
+	    
+	    // Lakukan pengunduhan data
+	    window.open(url, '_blank');
+	});
+
+
 
         function updateRoute() {
             var startLocation = document.getElementById('startLocation').dataset.latlng.split(',');
