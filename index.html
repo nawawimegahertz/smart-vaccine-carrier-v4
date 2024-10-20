@@ -301,72 +301,38 @@
             });
         }
 
-	// Variabel untuk menyimpan data koordinat terakhir
-	let lastValidCoordinates = [];
-	
-	// Fungsi untuk memfilter dan mendapatkan titik koordinat terakhir yang valid
-	function getLastValidCoordinates(dataArray) {
-	    // Menghapus koordinat yang NaN atau blank
-	    lastValidCoordinates = dataArray.filter(data => {
-	        const latitude = parseFloat(data.field1);
-	        const longitude = parseFloat(data.field2);
-	        return !isNaN(latitude) && !isNaN(longitude); // Hanya simpan yang valid
-	    });
-	
-	    // Ambil koordinat terakhir yang valid
-	    if (lastValidCoordinates.length > 0) {
-	        const latestData = lastValidCoordinates[lastValidCoordinates.length - 1];
-	        return {
-	            latitude: parseFloat(latestData.field1),
-	            longitude: parseFloat(latestData.field2)
-	        };
-	    }
-	
-	    return null; // Jika tidak ada koordinat yang valid
-	}
-	
-	// Modifikasi fungsi updateMap untuk memanggil getLastValidCoordinates
-	function updateMap(data) {
-	    // Asumsikan dataArray berisi beberapa data dari API Thingspeak
-	    const dataArray = [data]; // Anda harus menambahkan logika untuk mengumpulkan beberapa data dari API
-	
-	    // Dapatkan titik koordinat terakhir yang valid
-	    const lastValidCoords = getLastValidCoordinates(dataArray);
-	
-	    // Gunakan koordinat terakhir yang valid untuk memperbarui peta
-	    if (lastValidCoords) {
-	        const { latitude, longitude } = lastValidCoords;
-	        updateMarker(latitude, longitude);
-	        map.panTo([latitude, longitude]);
-	    } else {
-	        showAlert("Warning", "Tidak ada koordinat valid yang ditemukan.", "warning");
-	    }
-	
-	    // Update informasi lainnya
-	    var temp = parseFloat(data.field3);
-	    var batt = parseFloat(data.field4);
-	    var timestamp = data.created_at;
-	
-	    var date_ = timestamp.split('T'),
-	        date_now = date_[0], time_z = date_[1];
-	    var time_ = time_z.split('+'), time_now = time_[0];
-	
-	    document.getElementById('time_date').textContent = date_now;
-	    document.getElementById('time_time').textContent = time_now;
-	    document.getElementById('temperature').textContent = temp.toFixed(2);
-	    document.getElementById('battery').textContent = batt.toFixed(2);
-	}
-	
-	// Contoh penggunaan updateMap
-	fetch('URL_API_THINGSPEAK')
-	    .then(response => response.json())
-	    .then(data => {
-	        // Panggil updateMap dengan data yang diambil
-	        updateMap(data);
-	    })
-	    .catch(error => {
-	        showAlert("Error", "Gagal mengambil data dari server.", "error");
-	    });
+        function updateMap(data) {
+            var latitude = parseFloat(data.field1);
+            var longitude = parseFloat(data.field2);
+            var temp = parseFloat(data.field3);
+            var batt = parseFloat(data.field4);
+            var timestamp = data.created_at;
+
+            var date_ = timestamp.split('T'),
+                date_now = date_[0], time_z = date_[1];
+            var time_ = time_z.split('+'), time_now = time_[0];
+            
+            document.getElementById('time_date').textContent = date_now;
+            document.getElementById('time_time').textContent = time_now;
+            document.getElementById('temperature').textContent = temp.toFixed(2);
+            document.getElementById('battery').textContent = batt.toFixed(2);
+			
+            if (document.getElementById('latitude')) {
+                document.getElementById('latitude').textContent = latitude.toFixed(6);
+            }
+            if (document.getElementById('longitude')) {
+                document.getElementById('longitude').textContent = longitude.toFixed(6);
+            }
+
+            updateMarker(latitude, longitude);
+
+            if (stat_btn == 1) {
+                polyline.addLatLng([latitude, longitude]);
+                map.addLayer(polyline);
+            }
+
+            map.panTo([latitude, longitude]);
+        }
 
 	function updateMarker(latitude, longitude) {
             var customPopup = `Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}`;
